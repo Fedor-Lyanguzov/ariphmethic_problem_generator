@@ -54,7 +54,7 @@ class FormattersShould(unittest.TestCase):
     def setUp(self):
         self.p1 = Problem(22, "*", 3)
         self.p2 = Problem(2, "+", 3)
-        self.t = Task([self.p1, self.p2])
+        self.t = [self.p1, self.p2]
         
     def test_simple(self):
         self.assertEqual('\n'.join(map(str,self.t)), format_simple(self.t))
@@ -66,6 +66,14 @@ class FormattersShould(unittest.TestCase):
         self.assertEqual("22 * 3 = 66\n 2 + 3 = 5 ", format_text(self.t))
 
 class AdditionShould(unittest.TestCase):
+    """
+    1 + 2 = 3 - simple
+    8 + 9 = 17 - simple over ten
+    22 + 2 = 24 - complicated
+    24 + 7 = 31 - complicated over ten
+    43 + 22 = 65 - hard
+    24 + 48 = 72 - hard over ten
+    """
 
     def test_addition_eq(self):
         self.assertEqual(Problem(3, "+", 2), Addition(3, 2))
@@ -75,14 +83,23 @@ class AdditionShould(unittest.TestCase):
 
     def test_simple(self):
         task = [Addition.simple() for _ in range(100)]
-        self.assertNotIn(False, [ p.c <= 10 for p in task])
+        self.assertNotIn(False, [ 1 <= p.a <= 8 for p in task])
+        self.assertNotIn(False, [ 1 <= p.b <= 8 for p in task])
+        self.assertNotIn(False, [ p.c <= 9 for p in task])
 
     def test_simple_over_ten(self):
         task = [Addition.simple_over_ten() for _ in range(100)]
-        self.assertNotIn(False, [ 11 <= p.c <= 20 for p in task])
+        errors = [ p for p in task if not 1 <= p.a <= 9 ]
+        errors.extend([ p for p in task if not 1 <= p.b <= 9 ])
+        errors.extend([ p for p in task if not 10 <= p.c <= 20 ])
+        self.assertEqual([], errors)
 
     def test_complicated(self):
-        task = [Addition.simple_over_ten() for _ in range(100)]
+        task = [Addition.complicated() for _ in range(100)]
+        errors = [ p for p in task if not 1 <= p.a <= 9 ]
+        errors.extend([ p for p in task if not 1 <= p.b <= 9 ])
+        errors.extend([ p for p in task if not 10 <= p.c <= 20 ])
+        self.assertEqual([], errors)
         self.assertNotIn(False, [ 0 <= p.c%10 <= 9 for p in task])
 
     def test_complicated_over_ten(self):

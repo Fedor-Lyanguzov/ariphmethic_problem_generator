@@ -66,6 +66,9 @@ class Problem:
     def __str__(self):
         return self.format()
 
+    def __repr__(self):
+        return str(self)
+
     def __eq__(self, other):
         if isinstance(other, Problem):
             if self.a == other.a and self.op == other.op and self.b == other.b:
@@ -87,15 +90,21 @@ class Addition(Problem):
             return b, a
         return a, b
 
-    @classmethod
-    def simple(cls):
-        a = random.randint(1,9);
-        b = random.randint(1,10-a);
-        a, b = cls.random_swap(a, b)
-        return cls(a, b)
+    @staticmethod
+    def gen_simple():
+        """
+        Результат должен быть меньше 10, значит для
+        a  b
+        1  1-8
+        2  1-7
+        8  1
+        """
+        a = random.randint(1,8);
+        b = random.randint(1,9-a);
+        return a, b
 
-    @classmethod
-    def simple_over_ten(cls):
+    @staticmethod
+    def gen_simple_over_ten():
         """
         a    b
         1 - 10-10
@@ -105,9 +114,32 @@ class Addition(Problem):
         9 - 2-10
         """
         a = random.randint(1,9)
-        b = random.randint(11-a, 10)
+        b = random.randint(10-a, 9)
+        return a, b
+
+    addition = {
+        "simple": gen_simple.__func__,
+        "simple_over_ten": gen_simple_over_ten.__func__,
+        }
+    
+    @classmethod
+    def create(cls, _type):
+        """
+        Создать слагаемые по правилу,
+        Перемешать,
+        Собрать объект.
+        """
+        a, b = cls.addition[_type]()
         a, b = cls.random_swap(a, b)
         return cls(a, b)
+        
+    @classmethod
+    def simple(cls):
+        return cls.create("simple")
+
+    @classmethod
+    def simple_over_ten(cls):
+        return cls.create("simple_over_ten")
 
     @classmethod
     def complicated(cls):
@@ -122,9 +154,6 @@ class Addition(Problem):
         b = random.randint(10 - a%10, 9) + random.randint(1, 10-a//10)*10 
         a, b = cls.random_swap(a, b)
         return cls(a, b)        
-
-class Task(list):
-    pass
 
 def format_simple(task):
     return '\n'.join(map(str, task))
